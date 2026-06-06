@@ -6,7 +6,7 @@
   <title>ASローマ 2025-26 選手採点</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=M+PLUS+Rounded+1c:wght@700;800&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root {
       --roma-red:    #8B1A1A;
@@ -42,11 +42,11 @@
       opacity: 0.55;
     }
     .title {
-      font-family: 'Cinzel', serif;
+      font-family: 'M PLUS Rounded 1c', sans-serif;
       font-size: clamp(1.3rem, 3.8vw, 2rem);
-      font-weight: 700;
+      font-weight: 800;
       color: var(--roma-gold);
-      letter-spacing: 0.06em;
+      letter-spacing: 0.04em;
       text-shadow: 0 2px 24px rgba(201,168,76,0.25);
       margin-bottom: 0.6rem;
     }
@@ -230,9 +230,10 @@
       color: var(--roma-gold);
       border: 1px solid rgba(201,168,76,0.38);
       padding: 0.85rem 2.8rem;
-      font-family: 'Cinzel', serif;
-      font-size: 0.95rem;
-      letter-spacing: 0.07em;
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
       border-radius: 6px;
       cursor: pointer;
       transition: all 0.25s;
@@ -245,6 +246,82 @@
       transform: translateY(-1px);
     }
     .btn-submit:disabled { opacity: 0.38; cursor: not-allowed; transform: none; }
+
+    /* ─── UNRATED WARNING DIALOG ─── */
+    .warn-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.78);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .warn-overlay.show { opacity: 1; pointer-events: all; }
+    .warn-box {
+      background: #130707;
+      border: 1px solid rgba(201,168,76,0.22);
+      border-radius: 12px;
+      padding: 1.8rem 2rem;
+      width: min(420px, 92vw);
+      transform: translateY(16px);
+      transition: transform 0.25s;
+    }
+    .warn-overlay.show .warn-box { transform: translateY(0); }
+    .warn-box h3 {
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      font-weight: 800;
+      color: #e8a040;
+      font-size: 1rem;
+      margin-bottom: 0.8rem;
+    }
+    .warn-box p {
+      font-size: 0.82rem;
+      color: rgba(240,232,224,0.65);
+      margin-bottom: 0.6rem;
+      line-height: 1.6;
+    }
+    .warn-names {
+      background: rgba(255,255,255,0.04);
+      border-radius: 6px;
+      padding: 0.6rem 0.9rem;
+      margin-bottom: 1.2rem;
+      font-size: 0.82rem;
+      color: rgba(240,232,224,0.85);
+      line-height: 1.8;
+      max-height: 140px;
+      overflow-y: auto;
+    }
+    .warn-btns { display: flex; gap: 0.6rem; justify-content: flex-end; }
+    .btn-warn-back {
+      background: transparent;
+      border: 1px solid rgba(240,232,224,0.18);
+      color: rgba(240,232,224,0.55);
+      padding: 0.55rem 1.1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      font-weight: 700;
+      font-size: 0.82rem;
+      transition: all 0.18s;
+    }
+    .btn-warn-back:hover { color: #f0e8e0; border-color: rgba(240,232,224,0.38); }
+    .btn-warn-send {
+      background: rgba(139,26,26,0.4);
+      border: 1px solid rgba(201,168,76,0.3);
+      color: var(--roma-gold);
+      padding: 0.55rem 1.1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      font-weight: 700;
+      font-size: 0.82rem;
+      transition: all 0.18s;
+    }
+    .btn-warn-send:hover { background: rgba(139,26,26,0.65); border-color: rgba(201,168,76,0.6); }
 
     /* ─── ADMIN TRIGGER (camouflaged) ─── */
     .admin-trigger {
@@ -542,6 +619,19 @@
 
 </div>
 
+<!-- Unrated warning dialog -->
+<div class="warn-overlay" id="warnOverlay">
+  <div class="warn-box">
+    <h3>⚠️ 未採点の選手がいます</h3>
+    <p>以下の選手がまだ採点されていません。このまま送信すると <strong style="color:#f0e8e0">6.0点</strong> として扱われます。</p>
+    <div class="warn-names" id="warnNames"></div>
+    <div class="warn-btns">
+      <button class="btn-warn-back" id="btnWarnBack">戻って採点する</button>
+      <button class="btn-warn-send" id="btnWarnSend">このまま送信</button>
+    </div>
+  </div>
+</div>
+
 <!-- Admin trigger (camouflaged) -->
 <button class="admin-trigger" id="adminTrigger">管理者専用</button>
 
@@ -754,9 +844,7 @@
   }
 
   // ─── SUBMIT ─────────────────────────────────────────
-  async function submitVote() {
-    if (hasVoted()) { showToast('すでに採点済みです'); return; }
-
+  async function doSubmit() {
     const btn = document.getElementById('btnSubmit');
     btn.disabled    = true;
     btn.textContent = '送信中…';
@@ -777,6 +865,18 @@
       btn.disabled    = false;
       btn.textContent = '採点を確定する';
     }
+  }
+
+  function submitVote() {
+    if (hasVoted()) { showToast('すでに採点済みです'); return; }
+
+    const unrated = PLAYERS.filter(p => !touched[p]);
+    if (unrated.length > 0) {
+      document.getElementById('warnNames').textContent = unrated.join('、');
+      document.getElementById('warnOverlay').classList.add('show');
+      return;
+    }
+    doSubmit();
   }
 
   // ─── ADMIN: LOAD DATA ────────────────────────────────
@@ -874,6 +974,15 @@
   if (hasVoted()) lockUI();
 
   document.getElementById('btnSubmit').addEventListener('click', submitVote);
+
+  // Warning dialog
+  document.getElementById('btnWarnBack').addEventListener('click', () => {
+    document.getElementById('warnOverlay').classList.remove('show');
+  });
+  document.getElementById('btnWarnSend').addEventListener('click', () => {
+    document.getElementById('warnOverlay').classList.remove('show');
+    doSubmit();
+  });
 
   // Admin trigger
   document.getElementById('adminTrigger').addEventListener('click', () => {
