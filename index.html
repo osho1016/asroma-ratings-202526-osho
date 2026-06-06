@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ASローマ 2025-26 選手採点</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --roma-red:    #8B1A1A;
+      --roma-dark:   #110606;
+      --roma-gold:   #C9A84C;
+      --card-bg:     rgba(28, 10, 10, 0.72);
+      --card-border: rgba(201, 168, 76, 0.13);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: var(--roma-dark);
+      background-image:
+        radial-gradient(ellipse 70% 50% at 15% 0%,   rgba(139,26,26,0.45) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 85% 100%,  rgba(139,26,26,0.30) 0%, transparent 60%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='1' fill='rgba(201,168,76,0.06)'/%3E%3C/svg%3E");
+      min-height: 100vh;
+      color: #f0e8e0;
+      padding-bottom: 5rem;
+    }
+
+    /* ─── HEADER ─── */
+    .header {
+      text-align: center;
+      padding: 3.5rem 1rem 1.8rem;
+    }
+    .header-wolf {
+      font-size: 2.8rem;
+      line-height: 1;
+      margin-bottom: 0.6rem;
+      opacity: 0.55;
+    }
+    .title {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(1.3rem, 3.8vw, 2rem);
+      font-weight: 700;
+      color: var(--roma-gold);
+      letter-spacing: 0.06em;
+      text-shadow: 0 2px 24px rgba(201,168,76,0.25);
+      margin-bottom: 0.6rem;
+    }
+    .subtitle {
+      font-size: 0.85rem;
+      color: rgba(240,232,224,0.55);
+      font-weight: 300;
+      letter-spacing: 0.04em;
+    }
+
+    /* ─── VOTED BANNER ─── */
+    .voted-banner {
+      background: linear-gradient(135deg, rgba(201,168,76,0.12), rgba(139,26,26,0.12));
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 8px;
+      padding: 0.9rem 1.4rem;
+      text-align: center;
+      margin: 0.5rem auto 1.5rem;
+      max-width: 640px;
+      display: none;
+    }
+    .voted-banner.show { display: block; }
+    .voted-banner p { color: var(--roma-gold); font-size: 0.9rem; }
+
+    /* ─── SETUP NOTICE ─── */
+    .setup-notice {
+      background: rgba(255,200,0,0.08);
+      border: 1px solid rgba(255,200,0,0.3);
+      border-radius: 8px;
+      padding: 1rem 1.4rem;
+      margin: 0 auto 1.5rem;
+      max-width: 700px;
+      font-size: 0.78rem;
+      color: rgba(255,220,100,0.9);
+      line-height: 1.7;
+      display: none;
+    }
+    .setup-notice code {
+      background: rgba(255,255,255,0.1);
+      padding: 0.1em 0.35em;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+
+    /* ─── CONTAINER ─── */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    /* ─── PLAYER GRID ─── */
+    .player-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ─── PLAYER CARD ─── */
+    .player-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.1rem 1.3rem 1rem;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: border-color 0.25s, transform 0.2s, box-shadow 0.25s;
+    }
+    .player-card:hover {
+      border-color: rgba(201,168,76,0.32);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(0,0,0,0.4);
+    }
+
+    .player-name {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: rgba(240,232,224,0.92);
+      margin-bottom: 0.7rem;
+      letter-spacing: 0.02em;
+    }
+
+    /* Score display */
+    .rating-display {
+      font-family: 'Cinzel', serif;
+      font-size: 2.1rem;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 0.65rem;
+      line-height: 1;
+      transition: color 0.25s;
+    }
+    .rating-display.unrated { color: #555; }
+
+    /* ─── SLIDER ROW ─── */
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .btn-step {
+      width: 30px;
+      height: 30px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      border: 1px solid rgba(201,168,76,0.25);
+      background: rgba(201,168,76,0.07);
+      color: var(--roma-gold);
+      font-size: 1.15rem;
+      font-weight: 300;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+      line-height: 1;
+      padding: 0;
+      font-family: inherit;
+    }
+    .btn-step:hover:not(:disabled) {
+      background: rgba(201,168,76,0.18);
+      border-color: rgba(201,168,76,0.55);
+    }
+    .btn-step:active:not(:disabled) { transform: scale(0.88); }
+    .btn-step:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* Range slider */
+    .player-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      flex: 1;
+      height: 5px;
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+      transition: filter 0.3s;
+      background: rgba(255,255,255,0.12);
+    }
+    .player-slider.unrated {
+      filter: grayscale(100%) brightness(0.6);
+    }
+    .player-slider:disabled { cursor: not-allowed; opacity: 0.5; }
+
+    .player-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 0 0 2px rgba(0,0,0,0.35), 0 2px 6px rgba(0,0,0,0.45);
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    .player-slider::-webkit-slider-thumb:hover { transform: scale(1.18); }
+    .player-slider::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: none;
+      box-shadow: 0 0 0 2px rgba(0,0,0,0.35), 0 2px 6px rgba(0,0,0,0.45);
+      cursor: pointer;
+    }
+
+    .score-range-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.28rem;
+      padding: 0 2px;
+      font-size: 0.62rem;
+      color: rgba(240,232,224,0.3);
+    }
+
+    /* ─── SUBMIT ─── */
+    .submit-section { text-align: center; padding: 2rem 0 1rem; }
+    .btn-submit {
+      background: linear-gradient(135deg, #8B1A1A, #5E1010);
+      color: var(--roma-gold);
+      border: 1px solid rgba(201,168,76,0.38);
+      padding: 0.85rem 2.8rem;
+      font-family: 'Cinzel', serif;
+      font-size: 0.95rem;
+      letter-spacing: 0.07em;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.25s;
+      box-shadow: 0 4px 20px rgba(139,26,26,0.4);
+    }
+    .btn-submit:hover:not(:disabled) {
+      background: linear-gradient(135deg, #A52020, #8B1A1A);
+      border-color: rgba(201,168,76,0.65);
+      box-shadow: 0 4px 32px rgba(139,26,26,0.6);
+      transform: translateY(-1px);
+    }
+    .btn-submit:disabled { opacity: 0.38; cursor: not-allowed; transform: none; }
+
+    /* ─── ADMIN TRIGGER (camouflaged) ─── */
+    .admin-trigger {
+      position: fixed;
+      bottom: 0.9rem;
+      right: 1rem;
+      background: transparent;
+      border: 1px solid rgba(240,232,224,0.055);
+      color: rgba(240,232,224,0.09);
+      padding: 0.3rem 0.6rem;
+      font-size: 0.6rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: 'Noto Sans JP', sans-serif;
+      transition: color 0.4s, border-color 0.4s;
+      z-index: 50;
+    }
+    .admin-trigger:hover {
+      color: rgba(240,232,224,0.28);
+      border-color: rgba(240,232,224,0.18);
+    }
+
+    /* ─── MODAL ─── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.78);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .modal-overlay.show { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: #130707;
+      border: 1px solid rgba(201,168,76,0.22);
+      border-radius: 12px;
+      padding: 2rem;
+      width: min(380px, 92vw);
+      transform: translateY(16px);
+      transition: transform 0.25s;
+    }
+    .modal-overlay.show .modal { transform: translateY(0); }
+
+    .modal h2 {
+      font-family: 'Cinzel', serif;
+      color: var(--roma-gold);
+      font-size: 1.05rem;
+      margin-bottom: 1.3rem;
+      letter-spacing: 0.05em;
+    }
+    .modal input[type="password"] {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(201,168,76,0.28);
+      color: #f0e8e0;
+      padding: 0.7rem 0.95rem;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 0.75rem;
+    }
+    .modal input[type="password"]:focus { border-color: rgba(201,168,76,0.65); }
+
+    .modal-error {
+      color: #ff6b6b;
+      font-size: 0.78rem;
+      margin-bottom: 0.8rem;
+      display: none;
+    }
+    .modal-error.show { display: block; }
+
+    .modal-btns { display: flex; gap: 0.6rem; justify-content: flex-end; }
+
+    .btn-modal-cancel {
+      background: transparent;
+      border: 1px solid rgba(240,232,224,0.18);
+      color: rgba(240,232,224,0.5);
+      padding: 0.55rem 1.1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.82rem;
+      transition: all 0.18s;
+    }
+    .btn-modal-cancel:hover { color: #f0e8e0; border-color: rgba(240,232,224,0.38); }
+
+    .btn-modal-enter {
+      background: rgba(201,168,76,0.12);
+      border: 1px solid rgba(201,168,76,0.38);
+      color: var(--roma-gold);
+      padding: 0.55rem 1.1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.82rem;
+      transition: all 0.18s;
+    }
+    .btn-modal-enter:hover {
+      background: rgba(201,168,76,0.22);
+      border-color: rgba(201,168,76,0.65);
+    }
+
+    /* ─── ADMIN PANEL ─── */
+    .admin-panel {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #0d0404;
+      z-index: 300;
+      overflow-y: auto;
+    }
+    .admin-panel.show { display: block; }
+
+    .admin-header {
+      background: rgba(139,26,26,0.28);
+      border-bottom: 1px solid rgba(201,168,76,0.18);
+      padding: 1.3rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(12px);
+    }
+    .admin-header h1 {
+      font-family: 'Cinzel', serif;
+      color: var(--roma-gold);
+      font-size: 1.1rem;
+      letter-spacing: 0.05em;
+    }
+    .btn-close-admin {
+      background: transparent;
+      border: 1px solid rgba(240,232,224,0.18);
+      color: rgba(240,232,224,0.55);
+      padding: 0.45rem 0.95rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.82rem;
+      transition: all 0.18s;
+    }
+    .btn-close-admin:hover { color: #f0e8e0; border-color: rgba(240,232,224,0.38); }
+
+    .admin-content {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 3rem;
+    }
+
+    .admin-stats {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+    .stat-card {
+      background: rgba(139,26,26,0.18);
+      border: 1px solid rgba(201,168,76,0.18);
+      border-radius: 8px;
+      padding: 0.9rem 1.6rem;
+      text-align: center;
+      min-width: 120px;
+    }
+    .stat-value {
+      font-family: 'Cinzel', serif;
+      font-size: 2rem;
+      color: var(--roma-gold);
+      font-weight: 600;
+    }
+    .stat-label {
+      font-size: 0.7rem;
+      color: rgba(240,232,224,0.45);
+      margin-top: 0.2rem;
+      letter-spacing: 0.04em;
+    }
+
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .admin-table th {
+      font-family: 'Cinzel', serif;
+      font-size: 0.73rem;
+      color: rgba(201,168,76,0.75);
+      text-align: left;
+      padding: 0.6rem 0.9rem;
+      border-bottom: 1px solid rgba(201,168,76,0.18);
+      letter-spacing: 0.05em;
+    }
+    .admin-table td {
+      padding: 0.65rem 0.9rem;
+      font-size: 0.88rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      color: #f0e8e0;
+    }
+    .admin-table tr:hover td { background: rgba(201,168,76,0.03); }
+    .admin-table td.rank {
+      color: rgba(240,232,224,0.35);
+      font-size: 0.75rem;
+      width: 2rem;
+    }
+    .admin-table td.votes {
+      color: rgba(240,232,224,0.4);
+      font-size: 0.78rem;
+      text-align: right;
+      width: 4rem;
+    }
+
+    .score-bar-wrap { display: flex; align-items: center; gap: 0.65rem; }
+    .score-bar {
+      flex: 1;
+      height: 5px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .score-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.6s ease;
+    }
+    .score-num {
+      font-family: 'Cinzel', serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      min-width: 3.2rem;
+      text-align: right;
+    }
+
+    /* ─── LOADING / TOAST ─── */
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      color: rgba(240,232,224,0.35);
+      font-size: 0.82rem;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 2.2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: rgba(18,6,6,0.96);
+      border: 1px solid rgba(201,168,76,0.28);
+      color: #f0e8e0;
+      padding: 0.7rem 1.5rem;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      z-index: 400;
+      transition: transform 0.3s ease;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 480px) {
+      .player-grid { grid-template-columns: 1fr; }
+      .admin-content { padding: 1.2rem 1rem 3rem; }
+      .admin-header { padding: 1rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-wolf">🐺</div>
+  <h1 class="title">ASローマ 2025-26 選手採点</h1>
+  <p class="subtitle">今季もお疲れさまでした。選手の評価をしてみてください（3.0～10.0点）</p>
+</div>
+
+<div class="container">
+
+  <div id="setupNotice" class="setup-notice">
+    ⚠️ <strong>Firebase未設定</strong>：<code>index.html</code> 内の <code>firebaseConfig</code> を実際のプロジェクト設定に置き換えてください。設定方法は <code>README.md</code> をご覧ください。
+  </div>
+
+  <div id="votedBanner" class="voted-banner">
+    <p>✅ 採点済みです。ご参加ありがとうございました！</p>
+  </div>
+
+  <div class="player-grid" id="playerGrid"></div>
+
+  <div class="submit-section">
+    <button class="btn-submit" id="btnSubmit">採点を確定する</button>
+  </div>
+
+</div>
+
+<!-- Admin trigger (camouflaged) -->
+<button class="admin-trigger" id="adminTrigger">管理者専用</button>
+
+<!-- Password modal -->
+<div class="modal-overlay" id="pwModal">
+  <div class="modal">
+    <h2>管理者認証</h2>
+    <input type="password" id="pwInput" placeholder="パスワード" autocomplete="off">
+    <div class="modal-error" id="pwError">パスワードが正しくありません</div>
+    <div class="modal-btns">
+      <button class="btn-modal-cancel" id="btnPwCancel">キャンセル</button>
+      <button class="btn-modal-enter" id="btnPwEnter">入室</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin panel -->
+<div class="admin-panel" id="adminPanel">
+  <div class="admin-header">
+    <h1>管理者ダッシュボード</h1>
+    <button class="btn-close-admin" id="btnCloseAdmin">← 戻る</button>
+  </div>
+  <div class="admin-content">
+    <div class="admin-stats">
+      <div class="stat-card">
+        <div class="stat-value" id="statVoters">—</div>
+        <div class="stat-label">投票者数</div>
+      </div>
+    </div>
+    <div id="adminTableContainer">
+      <div class="loading">データを読み込み中...</div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<!-- =====================================================
+     FIREBASE CONFIGURATION
+     ① Firebase Console（https://console.firebase.google.com）でプロジェクトを作成
+     ② Firestore Database を有効化（テストモードで開始）
+     ③ プロジェクト設定 > マイアプリ > ウェブアプリ から設定をコピー
+     ④ 下記 firebaseConfig の各値を置き換える
+     ====================================================== -->
+<script type="module">
+  const firebaseConfig = {
+    apiKey:            "AIzaSyBYl5Xja589zOVIY2EKKWUzJb5ePJ7907Q",
+    authDomain:        "roma-ratings-202526-osho.firebaseapp.com",
+    projectId:         "roma-ratings-202526-osho",
+    storageBucket:     "roma-ratings-202526-osho.firebasestorage.app",
+    messagingSenderId: "132193634526",
+    appId:             "1:132193634526:web:7e2aca801380e904075a4f"
+  };
+
+  // ─────────────────────────────────────────────────────
+  import { initializeApp }          from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, serverTimestamp }
+                                    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const IS_CONFIGURED = firebaseConfig.apiKey !== "YOUR_API_KEY";
+  if (!IS_CONFIGURED) document.getElementById('setupNotice').style.display = 'block';
+
+  let db = null;
+  if (IS_CONFIGURED) {
+    const app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+  }
+
+  // ─── CONSTANTS ──────────────────────────────────────
+  const PLAYERS = [
+    "ミレ・スヴィラル",
+    "ジャンルカ・マンチーニ",
+    "エヴァン・エンディカ",
+    "マリオ・エルモソ",
+    "ダニエレ・ギラルディ",
+    "ヤン・ジョウコフスキ",
+    "ウェズレイ",
+    "ゼキ・チェリク",
+    "デフィン・レンシュ",
+    "コスタス・ツィミカス",
+    "ブライアン・クリスタンテ",
+    "マヌ・コネ",
+    "ニール・エル・アイナウイ",
+    "ニッコロ・ピジッリ",
+    "ロレンツォ・ペッレグリーニ",
+    "マティアス・スーレ",
+    "ステファン・エル・シャーラウィ",
+    "パウロ・ディバラ",
+    "アルテム・ドフビク",
+    "エヴァン・ファーガソン",
+    "ロビニオ・ヴァズ",
+    "ドニエル・マレン"
+  ];
+
+  const ADMIN_PW   = "sptc";
+  const DEFAULT    = 6.0;
+  const MIN        = 3.0;
+  const MAX        = 10.0;
+  const STEP       = 0.1;
+  const VOTE_KEY   = "roma_voted_2526";
+
+  // ─── STATE ──────────────────────────────────────────
+  const ratings = {};
+  const touched  = {};
+  PLAYERS.forEach(p => { ratings[p] = DEFAULT; touched[p] = false; });
+
+  // ─── COLOR HELPERS ──────────────────────────────────
+  function scoreColor(score) {
+    const t   = (score - MIN) / (MAX - MIN);
+    const r   = Math.round(210 - t * 165);
+    const g   = Math.round(35  + t * 175);
+    return `rgb(${r},${g},35)`;
+  }
+
+  function updateCard(name) {
+    const id      = toId(name);
+    const slider  = document.getElementById(`sl-${id}`);
+    const display = document.getElementById(`dp-${id}`);
+    if (!slider || !display) return;
+
+    const score  = ratings[name];
+    const raw    = touched[name];
+    display.textContent = score.toFixed(1);
+
+    if (!raw) {
+      slider.classList.add('unrated');
+      display.classList.add('unrated');
+      display.style.color = '';
+      slider.style.background = '';
+    } else {
+      slider.classList.remove('unrated');
+      display.classList.remove('unrated');
+      const col  = scoreColor(score);
+      const pct  = ((score - MIN) / (MAX - MIN) * 100).toFixed(2);
+      display.style.color = col;
+      slider.style.background =
+        `linear-gradient(to right, ${col} 0%, ${col} ${pct}%, rgba(255,255,255,0.12) ${pct}%, rgba(255,255,255,0.12) 100%)`;
+    }
+  }
+
+  function toId(name) {
+    return name.replace(/[・\s]/g, '_')
+               .replace(/[^\w\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf]/g, '');
+  }
+
+  // ─── BUILD GRID ─────────────────────────────────────
+  function buildGrid() {
+    const grid = document.getElementById('playerGrid');
+    grid.innerHTML = '';
+    PLAYERS.forEach(name => {
+      const id  = toId(name);
+      const div = document.createElement('div');
+      div.className = 'player-card';
+      div.innerHTML = `
+        <div class="player-name">${name}</div>
+        <div class="rating-display unrated" id="dp-${id}">${DEFAULT.toFixed(1)}</div>
+        <div class="slider-row">
+          <button class="btn-step" data-name="${name}" data-dir="-1" aria-label="マイナス">－</button>
+          <input type="range"
+            class="player-slider unrated"
+            id="sl-${id}"
+            min="${MIN}" max="${MAX}" step="${STEP}" value="${DEFAULT}"
+            data-name="${name}"
+          >
+          <button class="btn-step" data-name="${name}" data-dir="1" aria-label="プラス">＋</button>
+        </div>
+        <div class="score-range-labels"><span>${MIN.toFixed(1)}</span><span>${MAX.toFixed(1)}</span></div>
+      `;
+      grid.appendChild(div);
+    });
+
+    // Slider events
+    document.querySelectorAll('.player-slider').forEach(sl => {
+      sl.addEventListener('input', e => {
+        const n = e.target.dataset.name;
+        ratings[n]   = parseFloat(e.target.value);
+        touched[n]   = true;
+        updateCard(n);
+      });
+    });
+
+    // Step button events
+    document.querySelectorAll('.btn-step').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const n    = btn.dataset.name;
+        const dir  = parseInt(btn.dataset.dir, 10);
+        const next = Math.min(MAX, Math.max(MIN,
+          parseFloat((ratings[n] + dir * STEP).toFixed(1))
+        ));
+        ratings[n] = next;
+        touched[n] = true;
+        const sl = document.getElementById(`sl-${toId(n)}`);
+        if (sl) sl.value = next;
+        updateCard(n);
+      });
+    });
+  }
+
+  // ─── VOTE LOCK ───────────────────────────────────────
+  function hasVoted() { return localStorage.getItem(VOTE_KEY) === '1'; }
+  function markVoted() { localStorage.setItem(VOTE_KEY, '1'); }
+
+  function lockUI() {
+    document.getElementById('votedBanner').classList.add('show');
+    document.getElementById('btnSubmit').disabled    = true;
+    document.getElementById('btnSubmit').textContent = '採点済み';
+    document.querySelectorAll('.player-slider').forEach(s => s.disabled = true);
+    document.querySelectorAll('.btn-step').forEach(b => b.disabled = true);
+  }
+
+  // ─── SUBMIT ─────────────────────────────────────────
+  async function submitVote() {
+    if (hasVoted()) { showToast('すでに採点済みです'); return; }
+
+    const btn = document.getElementById('btnSubmit');
+    btn.disabled    = true;
+    btn.textContent = '送信中…';
+
+    try {
+      if (IS_CONFIGURED) {
+        await addDoc(collection(db, 'votes'), {
+          ratings: { ...ratings },
+          ts: serverTimestamp()
+        });
+      }
+      markVoted();
+      lockUI();
+      showToast('採点を送信しました！ご参加ありがとうございました。', 4000);
+    } catch (err) {
+      console.error(err);
+      showToast('送信に失敗しました。しばらくしてお試しください。');
+      btn.disabled    = false;
+      btn.textContent = '採点を確定する';
+    }
+  }
+
+  // ─── ADMIN: LOAD DATA ────────────────────────────────
+  async function loadAdmin() {
+    const box = document.getElementById('adminTableContainer');
+    if (!IS_CONFIGURED) {
+      document.getElementById('statVoters').textContent = '—';
+      box.innerHTML = '<div class="loading">Firebase 未設定のためデータを取得できません</div>';
+      return;
+    }
+    box.innerHTML = '<div class="loading">読み込み中…</div>';
+    try {
+      const snap  = await getDocs(collection(db, 'votes'));
+      const docs  = [];
+      snap.forEach(d => docs.push(d.data()));
+      const total = docs.length;
+      document.getElementById('statVoters').textContent = total;
+
+      if (total === 0) {
+        box.innerHTML = '<div class="loading">まだ投票がありません</div>';
+        return;
+      }
+
+      // Aggregate
+      const sums = {}, cnts = {};
+      PLAYERS.forEach(p => { sums[p] = 0; cnts[p] = 0; });
+      docs.forEach(doc => {
+        if (!doc.ratings) return;
+        PLAYERS.forEach(p => {
+          if (doc.ratings[p] != null) {
+            sums[p] += parseFloat(doc.ratings[p]);
+            cnts[p]++;
+          }
+        });
+      });
+
+      const avgs = PLAYERS.map(p => ({
+        name: p,
+        avg:  cnts[p] > 0 ? sums[p] / cnts[p] : null,
+        cnt:  cnts[p]
+      })).sort((a, b) => (b.avg ?? 0) - (a.avg ?? 0));
+
+      const rows = avgs.map((p, i) => {
+        const label = p.avg != null ? p.avg.toFixed(2) : '—';
+        const col   = p.avg != null ? scoreColor(p.avg) : '#555';
+        const pct   = p.avg != null
+          ? ((p.avg - MIN) / (MAX - MIN) * 100).toFixed(1)
+          : 0;
+        return `
+          <tr>
+            <td class="rank">${i + 1}</td>
+            <td>${p.name}</td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar">
+                  <div class="score-bar-fill" style="width:${pct}%;background:${col}"></div>
+                </div>
+                <span class="score-num" style="color:${col}">${label}</span>
+              </div>
+            </td>
+            <td class="votes">${p.cnt}票</td>
+          </tr>`;
+      }).join('');
+
+      box.innerHTML = `
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>選手名</th>
+              <th>平均採点</th>
+              <th>票数</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    } catch (err) {
+      console.error(err);
+      box.innerHTML = '<div class="loading">データ取得に失敗しました</div>';
+    }
+  }
+
+  // ─── TOAST ──────────────────────────────────────────
+  let toastTimer = null;
+  function showToast(msg, ms = 3200) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), ms);
+  }
+
+  // ─── INIT ────────────────────────────────────────────
+  buildGrid();
+  if (hasVoted()) lockUI();
+
+  document.getElementById('btnSubmit').addEventListener('click', submitVote);
+
+  // Admin trigger
+  document.getElementById('adminTrigger').addEventListener('click', () => {
+    document.getElementById('pwModal').classList.add('show');
+    setTimeout(() => document.getElementById('pwInput').focus(), 50);
+  });
+
+  function closeModal() {
+    document.getElementById('pwModal').classList.remove('show');
+    document.getElementById('pwInput').value = '';
+    document.getElementById('pwError').classList.remove('show');
+  }
+
+  document.getElementById('btnPwCancel').addEventListener('click', closeModal);
+
+  document.getElementById('btnPwEnter').addEventListener('click', () => {
+    if (document.getElementById('pwInput').value === ADMIN_PW) {
+      closeModal();
+      document.getElementById('adminPanel').classList.add('show');
+      loadAdmin();
+    } else {
+      document.getElementById('pwError').classList.add('show');
+    }
+  });
+
+  document.getElementById('pwInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('btnPwEnter').click();
+  });
+
+  document.getElementById('btnCloseAdmin').addEventListener('click', () => {
+    document.getElementById('adminPanel').classList.remove('show');
+  });
+
+  // Close modal on overlay click
+  document.getElementById('pwModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('pwModal')) closeModal();
+  });
+</script>
+
+</body>
+</html>
